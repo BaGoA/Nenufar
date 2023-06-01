@@ -25,9 +25,8 @@ impl Matrix {
 }
 
 /// General matrix-vector multiplication
-/// This function compute the result of \alpha*A*x + \beta*y
-/// where mat is matrix mxn, x and y are column vector of n elements,
-/// then \alpha and \beta are scalar
+/// This function compute the result of mat*x + y where mat is matrix mxn,
+/// x is column vector of n elements and y is column vector of m elements
 fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVector, String> {
     // Check inputs sizes consistency
     if mat.nb_columns != x.len() {
@@ -56,6 +55,16 @@ fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVector
     }
 
     return Ok(vec_out);
+}
+
+/// Apply a function on each element of column vector
+/// Given a function f and column vector x = [x1, ..., xn],
+/// this function return a column vector y = [f(x1), ..., f(xn)]
+fn apply_fun<Fun>(fun: Fun, x: &ColumnVector) -> ColumnVector
+where
+    Fun: Fn(f64) -> f64,
+{
+    return x.iter().map(|&elem| fun(elem)).collect();
 }
 
 // Unit tests
@@ -131,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn test_gemv_with_alpha_one_and_beta_one() {
+    fn test_gemv_mat_x_plus_y() {
         let nb_rows: usize = 4;
         let nb_cols: usize = 3;
         let generator: GemvGenerator = GemvGenerator::default();
@@ -151,6 +160,20 @@ mod tests {
                 }
             }
             Err(_) => assert!(false),
+        }
+    }
+
+    fn multiply_by_two(x: f64) -> f64 {
+        return 2.0 * x;
+    }
+
+    #[test]
+    fn test_apply_fun() {
+        let x: ColumnVector = vec![4.0, 5.0, 2.0, 3.0];
+        let y: ColumnVector = apply_fun(multiply_by_two, &x);
+
+        for id in 0..y.len() {
+            assert!(approx_equal(y[id], 2.0 * x[id], 0.01));
         }
     }
 }

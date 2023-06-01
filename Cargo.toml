@@ -7,7 +7,7 @@ license-file = "LICENSE"
 description = "Nenufar is Rust library to create simple neural network"
 repository = "https://github.com/BaGoA/Nenufar"
 readme = "README.md"
-keywords = ["linear-algebra", "neural-network"]
+keywords = ["neural-network"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
