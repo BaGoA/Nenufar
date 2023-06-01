@@ -1,4 +1,4 @@
-use super::number_generator::NumberGenerator;
+use super::num_gen::NumberGenerator;
 
 /// Type alias for column-vector
 type ColumnVector = Vec<f64>;

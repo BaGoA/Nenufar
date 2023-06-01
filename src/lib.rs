@@ -2,4 +2,4 @@
 #![allow(dead_code)]
 
 mod blaf;
-mod number_generator;
+mod num_gen;
