@@ -2,4 +2,5 @@
 #![allow(dead_code)]
 
 mod blaf;
+mod neural_net;
 mod num_gen;

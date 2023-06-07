@@ -1,10 +1,10 @@
 use super::num_gen::NumberGenerator;
 
 /// Type alias for column-vector
-type ColumnVector = Vec<f64>;
+pub type ColumnVector = Vec<f64>;
 
 /// Row-major matrix representation
-struct Matrix {
+pub struct Matrix {
     nb_rows: usize,
     nb_columns: usize,
     data: Vec<f64>,
@@ -12,7 +12,7 @@ struct Matrix {
 
 impl Matrix {
     /// Construct a filled zeros row-major matrix
-    fn new<Generator>(nb_rows: usize, nb_cols: usize, generator: &Generator) -> Self
+    pub fn new<Generator>(nb_rows: usize, nb_cols: usize, generator: &Generator) -> Self
     where
         Generator: NumberGenerator,
     {
@@ -22,12 +22,22 @@ impl Matrix {
             data: generator.generate_vec(nb_rows * nb_cols),
         };
     }
+
+    /// Get number of rows
+    pub fn nb_rows(&self) -> usize {
+        return self.nb_rows;
+    }
+
+    /// Get number of columns
+    pub fn nb_columns(&self) -> usize {
+        return self.nb_columns;
+    }
 }
 
 /// General matrix-vector multiplication
 /// This function compute the result of mat*x + y where mat is matrix mxn,
 /// x is column vector of n elements and y is column vector of m elements
-fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVector, String> {
+pub fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVector, String> {
     // Check inputs sizes consistency
     if mat.nb_columns != x.len() {
         return Err(
@@ -60,7 +70,7 @@ fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVector
 /// Apply a function on each element of column vector
 /// Given a function f and column vector x = [x1, ..., xn],
 /// this function return a column vector y = [f(x1), ..., f(xn)]
-fn apply_fun<Fun>(fun: Fun, x: &ColumnVector) -> ColumnVector
+pub fn apply_fun<Fun>(fun: Fun, x: &ColumnVector) -> ColumnVector
 where
     Fun: Fn(f64) -> f64,
 {
@@ -83,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn test_matrix_constructor() {
+    fn test_matrix_new() {
         let nb_rows: usize = 3;
         let nb_cols: usize = 5;
         let generator: ZeroGenerator = ZeroGenerator::default();
