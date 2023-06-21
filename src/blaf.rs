@@ -1,3 +1,4 @@
+use super::activation_fn::ActivationFunction;
 use super::num_gen::NumberGenerator;
 
 /// Type alias for column-vector
@@ -67,14 +68,24 @@ pub fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVe
     return Ok(vec_res);
 }
 
-/// Apply a function on each element of column vector
-/// Given a function f and column vector x = [x1, ..., xn],
+/// Apply an activation function on each element of column vector
+/// Given an activation function f and column vector x = [x1, ..., xn],
 /// this function return a column vector y = [f(x1), ..., f(xn)]
-pub fn apply_fun<Fun>(fun: Fun, x: &ColumnVector) -> ColumnVector
+pub fn apply_activation_function<Fun>(fun: &Fun, x: &ColumnVector) -> ColumnVector
 where
-    Fun: Fn(f64) -> f64,
+    Fun: ActivationFunction,
 {
-    return x.iter().map(|&elem| fun(elem)).collect();
+    return x.iter().map(|&elem| fun.activate(elem)).collect();
+}
+
+/// Apply a derivative of activation function on each element of column vector
+/// Given a activation function f and column vector x = [x1, ..., xn],
+/// this function return a column vector y = [f'(x1), ..., f'(xn)]
+pub fn apply_activation_derivative<Fun>(fun: &Fun, x: &ColumnVector) -> ColumnVector
+where
+    Fun: ActivationFunction,
+{
+    return x.iter().map(|&elem| fun.derivative(elem)).collect();
 }
 
 // Unit tests
@@ -173,17 +184,43 @@ mod tests {
         }
     }
 
-    fn multiply_by_two(x: f64) -> f64 {
-        return 2.0 * x;
+    #[derive(Default)]
+    struct PowerBy {
+        exponant: f64,
+    }
+
+    impl PowerBy {
+        fn new(exponant: f64) -> Self {
+            return Self { exponant };
+        }
+    }
+
+    impl ActivationFunction for PowerBy {
+        fn activate(&self, x: f64) -> f64 {
+            return x.powf(self.exponant);
+        }
+
+        fn derivative(&self, x: f64) -> f64 {
+            return self.exponant * x.powf(self.exponant - 1.0);
+        }
     }
 
     #[test]
-    fn test_apply_fun() {
+    fn test_apply_activation() {
+        let exponant: f64 = 2.0;
+        let power_by_two: PowerBy = PowerBy::new(exponant);
+
         let x: ColumnVector = vec![4.0, 5.0, 2.0, 3.0];
-        let y: ColumnVector = apply_fun(multiply_by_two, &x);
+        let y: ColumnVector = apply_activation_function(&power_by_two, &x);
+        let yprime: ColumnVector = apply_activation_derivative(&power_by_two, &x);
 
         for id in 0..y.len() {
-            assert!(approx_equal(y[id], 2.0 * x[id], 0.01));
+            assert!(approx_equal(y[id], x[id].powf(exponant), 0.01));
+            assert!(approx_equal(
+                yprime[id],
+                exponant * x[id].powf(exponant - 1.0),
+                0.01
+            ));
         }
     }
 }
