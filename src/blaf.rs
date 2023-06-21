@@ -50,21 +50,21 @@ pub fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVe
     }
 
     // Compute \alpha*mat*x + \beta*y
-    let mut vec_out: ColumnVector = vec![0.0; y.len()];
+    let mut vec_res: ColumnVector = vec![0.0; y.len()];
 
-    for id in 0..vec_out.len() {
-        let slice_lb: usize = id * mat.nb_columns;
+    vec_res.iter_mut().enumerate().for_each(|(index, value)| {
+        let slice_lb: usize = index * mat.nb_columns;
         let slice_ub: usize = slice_lb + mat.nb_columns;
 
-        vec_out[id] = y[id]
+        *value = y[index]
             + mat.data[slice_lb..slice_ub]
                 .iter()
                 .zip(x.iter())
                 .map(|(mat_elem, x_elem)| mat_elem * x_elem)
                 .sum::<f64>();
-    }
+    });
 
-    return Ok(vec_out);
+    return Ok(vec_res);
 }
 
 /// Apply a function on each element of column vector
