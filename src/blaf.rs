@@ -78,16 +78,6 @@ where
     return x.iter().map(|&elem| fun.activate(elem)).collect();
 }
 
-/// Apply a derivative of activation function on each element of column vector
-/// Given a activation function f and column vector x = [x1, ..., xn],
-/// this function return a column vector y = [f'(x1), ..., f'(xn)]
-pub fn apply_activation_derivative<Fun>(fun: &Fun, x: &ColumnVector) -> ColumnVector
-where
-    Fun: ActivationFunction,
-{
-    return x.iter().map(|&elem| fun.derivative(elem)).collect();
-}
-
 // Unit tests
 #[cfg(test)]
 mod tests {
@@ -199,10 +189,6 @@ mod tests {
         fn activate(&self, x: f64) -> f64 {
             return x.powf(self.exponant);
         }
-
-        fn derivative(&self, x: f64) -> f64 {
-            return self.exponant * x.powf(self.exponant - 1.0);
-        }
     }
 
     #[test]
@@ -212,15 +198,9 @@ mod tests {
 
         let x: ColumnVector = vec![4.0, 5.0, 2.0, 3.0];
         let y: ColumnVector = apply_activation_function(&power_by_two, &x);
-        let yprime: ColumnVector = apply_activation_derivative(&power_by_two, &x);
 
         for id in 0..y.len() {
             assert!(approx_equal(y[id], x[id].powf(exponant), 0.01));
-            assert!(approx_equal(
-                yprime[id],
-                exponant * x[id].powf(exponant - 1.0),
-                0.01
-            ));
         }
     }
 }
