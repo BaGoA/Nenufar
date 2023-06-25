@@ -15,14 +15,14 @@ impl NeuralNet {
     where
         Generator: NumberGenerator,
     {
-        let nb_layer: usize = topology.layer_dimensions.len();
+        let nb_layer: usize = topology.nb_neurons.len();
 
         let mut weigth: Vec<blaf::Matrix> = Vec::with_capacity(nb_layer);
         let mut bias: Vec<blaf::ColumnVector> = Vec::with_capacity(nb_layer);
 
         for id in 0..(nb_layer - 1) {
-            let nb_rows: usize = topology.layer_dimensions[id + 1];
-            let nb_cols: usize = topology.layer_dimensions[id];
+            let nb_rows: usize = topology.nb_neurons[id + 1];
+            let nb_cols: usize = topology.nb_neurons[id];
 
             weigth.push(blaf::Matrix::new(nb_rows, nb_cols, random_gen));
             bias.push(random_gen.generate_vec(nb_rows));
@@ -71,23 +71,15 @@ mod tests {
 
         let neural_net: NeuralNet = NeuralNet::new(&topology, &generator);
 
-        let size: usize = topology.layer_dimensions.len() - 1;
+        let size: usize = topology.nb_neurons.len() - 1;
 
         assert_eq!(neural_net.weigth.len(), size);
         assert_eq!(neural_net.bias.len(), size);
 
         for id in 0..size {
-            assert_eq!(
-                neural_net.weigth[id].nb_rows(),
-                topology.layer_dimensions[id + 1]
-            );
-
-            assert_eq!(
-                neural_net.weigth[id].nb_columns(),
-                topology.layer_dimensions[id]
-            );
-
-            assert_eq!(neural_net.bias[id].len(), topology.layer_dimensions[id + 1]);
+            assert_eq!(neural_net.weigth[id].nb_rows(), topology.nb_neurons[id + 1]);
+            assert_eq!(neural_net.weigth[id].nb_columns(), topology.nb_neurons[id]);
+            assert_eq!(neural_net.bias[id].len(), topology.nb_neurons[id + 1]);
         }
     }
 }

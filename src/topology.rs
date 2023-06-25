@@ -3,7 +3,7 @@ use super::activation_fn::ActivationFunction;
 /// Neural network topology is define by number of neurons in each layer (including input and
 /// output layer), then activation functions apply on each neurons belonging to a layer
 pub struct Topology {
-    pub layer_dimensions: Vec<usize>,
+    pub nb_neurons: Vec<usize>,
     pub activation_functions: Vec<Box<dyn ActivationFunction>>,
 }
 
@@ -11,7 +11,7 @@ pub struct Topology {
 pub struct TopologyBuilder {
     nb_input: usize,
     nb_output: usize,
-    hidden_layer_dimensions: Vec<usize>,
+    hidden_nb_neurons: Vec<usize>,
     activation_functions: Vec<Box<dyn ActivationFunction>>,
 }
 
@@ -21,7 +21,7 @@ impl TopologyBuilder {
         return Self {
             nb_input: 0,
             nb_output: 0,
-            hidden_layer_dimensions: Vec::with_capacity(12),
+            hidden_nb_neurons: Vec::with_capacity(12),
             activation_functions: Vec::with_capacity(10),
         };
     }
@@ -45,7 +45,7 @@ impl TopologyBuilder {
         nb_neuron: usize,
         activation_function: Box<dyn ActivationFunction>,
     ) -> Self {
-        self.hidden_layer_dimensions.push(nb_neuron);
+        self.hidden_nb_neurons.push(nb_neuron);
         self.activation_functions.push(activation_function);
         return self;
     }
@@ -64,21 +64,20 @@ impl TopologyBuilder {
             ));
         }
 
-        if self.hidden_layer_dimensions.len() == 0 {
+        if self.hidden_nb_neurons.len() == 0 {
             return Err(String::from(
                 "There is no hidden layer in your neural network",
             ));
         }
 
-        let mut layer_dimensions: Vec<usize> =
-            Vec::with_capacity(self.hidden_layer_dimensions.len() + 2);
+        let mut nb_neurons: Vec<usize> = Vec::with_capacity(self.hidden_nb_neurons.len() + 2);
 
-        layer_dimensions.push(self.nb_input);
-        layer_dimensions.extend(self.hidden_layer_dimensions.iter());
-        layer_dimensions.push(self.nb_output);
+        nb_neurons.push(self.nb_input);
+        nb_neurons.extend(self.hidden_nb_neurons.iter());
+        nb_neurons.push(self.nb_output);
 
         return Ok(Topology {
-            layer_dimensions,
+            nb_neurons,
             activation_functions: self.activation_functions,
         });
     }
@@ -176,11 +175,11 @@ mod tests {
             .build()
             .unwrap();
 
-        assert_eq!(topology.layer_dimensions.len(), 4);
-        assert_eq!(topology.layer_dimensions[0], nb_input);
-        assert_eq!(topology.layer_dimensions[1], nb_neuron_first_layer);
-        assert_eq!(topology.layer_dimensions[2], nb_neuron_second_layer);
-        assert_eq!(topology.layer_dimensions[3], nb_output);
+        assert_eq!(topology.nb_neurons.len(), 4);
+        assert_eq!(topology.nb_neurons[0], nb_input);
+        assert_eq!(topology.nb_neurons[1], nb_neuron_first_layer);
+        assert_eq!(topology.nb_neurons[2], nb_neuron_second_layer);
+        assert_eq!(topology.nb_neurons[3], nb_output);
 
         assert_eq!(topology.activation_functions.len(), 2);
 
