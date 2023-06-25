@@ -33,14 +33,14 @@ impl TopologyBuilder {
     }
 
     /// Set number of outputs of neural network
-    fn nb_output(mut self, nb_output: usize) -> Self {
+    pub fn nb_output(mut self, nb_output: usize) -> Self {
         self.nb_output = nb_output;
         return self;
     }
 
     /// Add a hidden layer in topology by giving number of neurons and the activation function to apply
     /// on each neuron
-    fn add_layer(
+    pub fn add_layer(
         mut self,
         nb_neuron: usize,
         activation_function: Box<dyn ActivationFunction>,
