@@ -63,7 +63,7 @@ mod tests {
         let topology: Topology = TopologyBuilder::new()
             .nb_input(2)
             .add_layer(3, Box::new(TestActivationFn::default()))
-            .nb_output(1)
+            .add_layer(1, Box::new(TestActivationFn::default()))
             .build()
             .unwrap();
 

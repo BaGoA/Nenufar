@@ -10,8 +10,7 @@ pub struct Topology {
 /// Neural network topology builder
 pub struct TopologyBuilder {
     nb_input: usize,
-    nb_output: usize,
-    hidden_nb_neurons: Vec<usize>,
+    nb_neurons: Vec<usize>,
     activation_functions: Vec<Box<dyn ActivationFunction>>,
 }
 
@@ -20,8 +19,7 @@ impl TopologyBuilder {
     pub fn new() -> Self {
         return Self {
             nb_input: 0,
-            nb_output: 0,
-            hidden_nb_neurons: Vec::with_capacity(12),
+            nb_neurons: Vec::with_capacity(12),
             activation_functions: Vec::with_capacity(10),
         };
     }
@@ -32,20 +30,14 @@ impl TopologyBuilder {
         return self;
     }
 
-    /// Set number of outputs of neural network
-    pub fn nb_output(mut self, nb_output: usize) -> Self {
-        self.nb_output = nb_output;
-        return self;
-    }
-
-    /// Add a hidden layer in topology by giving number of neurons and the activation function to apply
+    /// Add a layer in topology by giving number of neurons and the activation function to apply
     /// on each neuron
     pub fn add_layer(
         mut self,
         nb_neuron: usize,
         activation_function: Box<dyn ActivationFunction>,
     ) -> Self {
-        self.hidden_nb_neurons.push(nb_neuron);
+        self.nb_neurons.push(nb_neuron);
         self.activation_functions.push(activation_function);
         return self;
     }
@@ -58,23 +50,16 @@ impl TopologyBuilder {
             ));
         }
 
-        if self.nb_output == 0 {
-            return Err(String::from(
-                "There is no output layer in your neural network",
-            ));
-        }
-
-        if self.hidden_nb_neurons.len() == 0 {
+        if self.nb_neurons.len() == 0 {
             return Err(String::from(
                 "There is no hidden layer in your neural network",
             ));
         }
 
-        let mut nb_neurons: Vec<usize> = Vec::with_capacity(self.hidden_nb_neurons.len() + 2);
+        let mut nb_neurons: Vec<usize> = Vec::with_capacity(self.nb_neurons.len() + 1);
 
         nb_neurons.push(self.nb_input);
-        nb_neurons.extend(self.hidden_nb_neurons.iter());
-        nb_neurons.push(self.nb_output);
+        nb_neurons.extend(self.nb_neurons.iter());
 
         return Ok(Topology {
             nb_neurons,
@@ -117,26 +102,15 @@ mod tests {
     fn test_build_topology_without_inputs() {
         let topology: Result<Topology, String> = TopologyBuilder::new()
             .add_layer(2, Box::new(TestActivationFn::new(2.0)))
-            .nb_output(1)
+            .add_layer(1, Box::new(TestActivationFn::new(3.0)))
             .build();
 
         assert!(topology.is_err());
     }
 
     #[test]
-    fn test_build_topology_without_outputs() {
-        let topology: Result<Topology, String> = TopologyBuilder::new()
-            .add_layer(2, Box::new(TestActivationFn::new(2.0)))
-            .nb_input(1)
-            .build();
-
-        assert!(topology.is_err());
-    }
-
-    #[test]
-    fn test_build_topology_without_hidden_layer() {
-        let topology: Result<Topology, String> =
-            TopologyBuilder::new().nb_input(2).nb_output(1).build();
+    fn test_build_topology_without_layer() {
+        let topology: Result<Topology, String> = TopologyBuilder::new().nb_input(2).build();
 
         assert!(topology.is_err());
     }
@@ -155,11 +129,12 @@ mod tests {
     #[test]
     fn test_build_topology() {
         let nb_input: usize = 2;
-        let nb_output: usize = 1;
         let nb_neuron_first_layer: usize = 4;
         let factor_first_layer: f64 = 3.0;
         let nb_neuron_second_layer: usize = 6;
         let factor_second_layer: f64 = 2.0;
+        let nb_neuron_last_layer: usize = 1;
+        let factor_last_layer: f64 = 5.0;
 
         let topology: Topology = TopologyBuilder::new()
             .nb_input(nb_input)
@@ -171,7 +146,10 @@ mod tests {
                 nb_neuron_second_layer,
                 Box::new(TestActivationFn::new(factor_second_layer)),
             )
-            .nb_output(nb_output)
+            .add_layer(
+                nb_neuron_last_layer,
+                Box::new(TestActivationFn::new(factor_last_layer)),
+            )
             .build()
             .unwrap();
 
@@ -179,9 +157,9 @@ mod tests {
         assert_eq!(topology.nb_neurons[0], nb_input);
         assert_eq!(topology.nb_neurons[1], nb_neuron_first_layer);
         assert_eq!(topology.nb_neurons[2], nb_neuron_second_layer);
-        assert_eq!(topology.nb_neurons[3], nb_output);
+        assert_eq!(topology.nb_neurons[3], nb_neuron_last_layer);
 
-        assert_eq!(topology.activation_functions.len(), 2);
+        assert_eq!(topology.activation_functions.len(), 3);
 
         let precision: f64 = 0.01;
 
@@ -194,6 +172,12 @@ mod tests {
         assert!(approx_equal(
             topology.activation_functions[1].activate(1.0),
             factor_second_layer,
+            precision
+        ));
+
+        assert!(approx_equal(
+            topology.activation_functions[2].activate(1.0),
+            factor_last_layer,
             precision
         ));
     }
