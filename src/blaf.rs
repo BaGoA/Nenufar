@@ -71,21 +71,11 @@ pub fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVe
 /// Apply an activation function on each element of column vector
 /// Given an activation function f and column vector x = [x1, ..., xn],
 /// this function return a column vector y = [f(x1), ..., f(xn)]
-pub fn apply_activation_function<Fun>(fun: &Fun, x: &ColumnVector) -> ColumnVector
-where
-    Fun: ActivationFunction,
-{
+pub fn apply_activation_function(
+    fun: &Box<dyn ActivationFunction>,
+    x: &ColumnVector,
+) -> ColumnVector {
     return x.iter().map(|&elem| fun.activate(elem)).collect();
-}
-
-/// Apply a derivative of activation function on each element of column vector
-/// Given a activation function f and column vector x = [x1, ..., xn],
-/// this function return a column vector y = [f'(x1), ..., f'(xn)]
-pub fn apply_activation_derivative<Fun>(fun: &Fun, x: &ColumnVector) -> ColumnVector
-where
-    Fun: ActivationFunction,
-{
-    return x.iter().map(|&elem| fun.derivative(elem)).collect();
 }
 
 // Unit tests
@@ -199,28 +189,18 @@ mod tests {
         fn activate(&self, x: f64) -> f64 {
             return x.powf(self.exponant);
         }
-
-        fn derivative(&self, x: f64) -> f64 {
-            return self.exponant * x.powf(self.exponant - 1.0);
-        }
     }
 
     #[test]
     fn test_apply_activation() {
         let exponant: f64 = 2.0;
-        let power_by_two: PowerBy = PowerBy::new(exponant);
+        let power_by_two: Box<dyn ActivationFunction> = Box::new(PowerBy::new(exponant));
 
         let x: ColumnVector = vec![4.0, 5.0, 2.0, 3.0];
         let y: ColumnVector = apply_activation_function(&power_by_two, &x);
-        let yprime: ColumnVector = apply_activation_derivative(&power_by_two, &x);
 
         for id in 0..y.len() {
             assert!(approx_equal(y[id], x[id].powf(exponant), 0.01));
-            assert!(approx_equal(
-                yprime[id],
-                exponant * x[id].powf(exponant - 1.0),
-                0.01
-            ));
         }
     }
 }
