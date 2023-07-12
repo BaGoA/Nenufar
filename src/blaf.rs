@@ -71,10 +71,10 @@ pub fn gemv(mat: &Matrix, x: &ColumnVector, y: &ColumnVector) -> Result<ColumnVe
 /// Apply an activation function on each element of column vector
 /// Given an activation function f and column vector x = [x1, ..., xn],
 /// this function return a column vector y = [f(x1), ..., f(xn)]
-pub fn apply_activation_function<Fun>(fun: &Fun, x: &ColumnVector) -> ColumnVector
-where
-    Fun: ActivationFunction,
-{
+pub fn apply_activation_function(
+    fun: &Box<dyn ActivationFunction>,
+    x: &ColumnVector,
+) -> ColumnVector {
     return x.iter().map(|&elem| fun.activate(elem)).collect();
 }
 
@@ -194,7 +194,7 @@ mod tests {
     #[test]
     fn test_apply_activation() {
         let exponant: f64 = 2.0;
-        let power_by_two: PowerBy = PowerBy::new(exponant);
+        let power_by_two: Box<dyn ActivationFunction> = Box::new(PowerBy::new(exponant));
 
         let x: ColumnVector = vec![4.0, 5.0, 2.0, 3.0];
         let y: ColumnVector = apply_activation_function(&power_by_two, &x);
